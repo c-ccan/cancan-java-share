@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>项目1</title>
+    <script src="jquery.min.js"></script>
+    <script src="socket.js"></script>
+</head>
+<body>
+
+<h5>内容</h5>
+<textarea id = "msg" name="postresponseText" style="width: 600px;height: 600px">
+</textarea>
+<br/>
+<input type="button" value="提交" id="btn">
+<script>
+    var scoket;
+    $(function () {
+        socket= createScoket(123);
+        $("#btn").click(function () {
+            var msg = $("#msg").val();
+            socket.send(msg); //发送消息
+        });
+    })
+</script>
+</body>
+</html>

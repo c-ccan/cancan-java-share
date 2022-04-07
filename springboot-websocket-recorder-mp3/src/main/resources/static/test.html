@@ -1,0 +1,103 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>测试</title>
+</head>
+<body>
+<button id="intercomBegin">开始对讲</button>
+<button id="intercomEnd">关闭对讲</button>
+<canvas id="casvased" style="width: 400px;height: 100px"></canvas>
+</body>
+<script type="text/javascript" src="js/jquery-3.3.1.js"></script>
+<script type="text/javascript" src="js/recorder/recordmp3.js"></script>
+<script type="text/javascript">
+    var begin = document.getElementById('intercomBegin');
+    var end = document.getElementById('intercomEnd');
+
+    var canvas = document.getElementById("casvased");
+    var canvasCtx = canvas.getContext("2d");
+
+    var ws = null; //实现WebSocket
+
+    var recorder;
+
+    /*
+    * WebSocket
+    */
+    function useWebSocket() {
+        ws = new WebSocket("ws://localhost:8081/send/voice");
+        ws.binaryType = 'arraybuffer'; //传输的是 ArrayBuffer 类型的数据
+        ws.onopen = function () {
+            console.log('握手成功');
+            if (ws.readyState == 1) { //ws进入连接状态，则每隔500毫秒发送一包数据
+                recorder.start();
+            }
+        };
+
+        ws.onmessage = function (msg) {
+            console.info(msg)
+        }
+
+        ws.onerror = function (err) {
+            console.info(err)
+        }
+    }
+
+    /*
+    * 开始对讲
+    */
+    begin.onclick = function () {
+        recorder = new MP3Recorder({
+            debug: true,
+            funOk: function () {
+                console.log('点击录制，开始录音！ ');
+            },
+            funCancel: function (msg) {
+                console.log(msg);
+                recorder = null;
+            }
+        });
+    }
+
+    /*
+    * 关闭对讲
+    */
+    end.onclick = function () {
+        if (ws) {
+            ws.close();
+            recorder.stop();
+            console.log('关闭对讲以及WebSocket');
+        }
+    }
+
+    var sendData = function() { //对以获取的数据进行处理(分包)
+        var reader = new FileReader();
+        reader.onload = e => {
+            var outbuffer = e.target.result;
+            var arr = new Int8Array(outbuffer);
+            if (arr.length > 0) {
+                var tmparr = new Int8Array(1024);
+                var j = 0;
+                for (var i = 0; i < arr.byteLength; i++) {
+                    tmparr[j++] = arr[i];
+                    if (((i + 1) % 1024) == 0) {
+                        ws.send(tmparr);
+                        if (arr.byteLength - i - 1 >= 1024) {
+                            tmparr = new Int8Array(1024);
+                        } else {
+                            tmparr = new Int8Array(arr.byteLength - i - 1);
+                        }
+                        j = 0;
+                    }
+                    if ((i + 1 == arr.byteLength) && ((i + 1) % 1024) != 0) {
+                        ws.send(tmparr);
+                    }
+                }
+            }
+        };
+        recorder.getMp3Blob(function (blob) {
+            reader.readAsArrayBuffer(blob);//这里拿到mp3格式的音频流写入到reader中
+            })
+        }; </script> </html>

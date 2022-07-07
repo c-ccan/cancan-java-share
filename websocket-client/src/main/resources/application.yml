@@ -1,0 +1,8 @@
+cancan:
+  websocket:
+    client:
+      config:
+        wsUrl: ws://localhost:8082
+        enableHeartbeat: true
+        heartbeatInterval: 20000
+        enableReconnection: true

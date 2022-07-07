@@ -1,0 +1,14 @@
+spring:
+  kafka:
+    #bootstrap-servers: 10.51.13.89:6667,10.51.13.200:6667,10.51.13.204:6667
+    bootstrap-servers: 10.51.9.130:30330,10.51.9.130:30331,10.51.9.130:30332
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      retries:
+    consumer:
+      group-id: hjmos-groudA
+      enable-auto-commit: true
+      auto-commit-interval: 1000
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
